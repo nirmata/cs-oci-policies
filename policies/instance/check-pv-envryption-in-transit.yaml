@@ -1,0 +1,20 @@
+apiVersion: json.kyverno.io/v1alpha1
+kind: ValidatingPolicy
+metadata:
+  name: check-pv-encryption-in-transit
+  annotations:
+    policies.kyverno.io/category: OCI Best Practices
+spec:
+  rules:
+    - name: check-pv-encryption-in-transit
+      match:
+        all:
+          # - ($analyzer.resource.type): terraform-plan
+          - (planned_values.root_module.child_modules[].resources[?type=='oci_core_instance'][] | length(@) > `0`): true
+      assert:
+        all:
+          - message: Check that encryption in transit is defined for PVs.
+            check:
+              ~.(planned_values.root_module.child_modules[].resources[?type=='oci_core_instance'][]):
+                values:
+                  is_pv_encryption_in_transit_enabled: true

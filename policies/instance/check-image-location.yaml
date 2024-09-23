@@ -1,0 +1,26 @@
+apiVersion: json.kyverno.io/v1alpha1
+kind: ValidatingPolicy
+metadata:
+  name: check-image-location
+  annotations:
+    policies.kyverno.io/category: OCI Best Practices
+spec:
+  rules:
+    - name: check-image-location
+      match:
+        all:
+          # - ($analyzer.resource.type): terraform-plan
+          - (planned_values.root_module.child_modules[].resources[?type=='oci_core_instance'][] | length(@) > `0`): true
+        context:
+          # NOTE: this is a temp solution. we need to check against a list/dynamic extraction of the domain/region rather than hardcoding it
+        - name: domain
+          variable: iad
+      assert:
+        all:
+          - message: Check that the image location is correct.
+            check:
+              ~.(planned_values.root_module.child_modules[].resources[?type=='oci_core_instance']):
+                values:
+                  source_details[][]:
+                    source_id:
+                      (contains(@, $domain)): true

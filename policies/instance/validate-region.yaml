@@ -1,0 +1,25 @@
+apiVersion: json.kyverno.io/v1alpha1
+kind: ValidatingPolicy
+metadata:
+  name: validate-region
+  annotations:
+    policies.kyverno.io/category: OCI Best Practices
+spec:
+  rules:
+    - name: validate-region
+      match:
+        all:
+          # - ($analyzer.resource.type): terraform-plan
+          - (planned_values.root_module.child_modules[].resources[?type=='oci_core_instance'][] | length(@) > `0`): true
+      assert:
+        all:
+          # TODO: This needs to be variable stored with a list of allowed locations rather than hardcoded
+          - message: Check whether the right region is used to create an instance
+            check:
+              configuration:
+                provider_config:
+                  oci:
+                    expressions:
+                      region:
+                        constant_value:
+                          (contains(@, 'us-ashburn-1')): true
