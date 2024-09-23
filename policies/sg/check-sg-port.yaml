@@ -1,0 +1,27 @@
+apiVersion: json.kyverno.io/v1alpha1
+kind: ValidatingPolicy
+metadata:
+  name: check-sg-port
+  annotations:
+    policies.kyverno.io/category: OCI Best Practices
+spec:
+  rules:
+    - name: check-sg-port
+      match:
+        all:
+          # - ($analyzer.resource.type): terraform-plan
+          - (configuration.root_module.module_calls | length(@) > `0`): true
+      context:
+      - name: validPorts
+        variable:
+        - 22
+        - 80
+        - 443
+      assert:
+        any:
+          - message: Check that the SH inbound and outbound port conforms to TIAA security standard.
+            check:
+              (configuration.root_module.module_calls.test_security_group_rules.expressions.nsg_rules_details.constant_value.rules):
+                options:
+                  ~.(tcp):
+                      (contains($validPorts, destination_port_range_max)): true
