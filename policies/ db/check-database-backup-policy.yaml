@@ -1,0 +1,22 @@
+apiVersion: json.kyverno.io/v1alpha1
+kind: ValidatingPolicy
+metadata:
+  name: check-database-backup-policy
+  annotations:
+    policies.kyverno.io/category: OCI Best Practices
+spec:
+  rules:
+    - name: check-database-backup-policy
+      match:
+        all:
+          - ($analyzer.resource.type): terraform-plan
+          - (planned_values.root_module.child_modules[].resources[?type=='oci_database_database'][] | length(@) > `0`): true
+      assert:
+        all:
+          - message: Check that the a backups are enabled on Database Instances.
+            check:
+              ~.(planned_values.root_module.child_modules[].resources[?type=='oci_database_database'][]):
+                values:
+                  ~.(database[]):
+                    ~.(db_backup_config[]):
+                      auto_backup_enabled: true
