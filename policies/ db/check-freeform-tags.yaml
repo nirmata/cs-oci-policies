@@ -1,0 +1,29 @@
+apiVersion: json.kyverno.io/v1alpha1
+kind: ValidatingPolicy
+metadata:
+  name: check-database-tags-defined
+  annotations:
+    policies.kyverno.io/category: OCI Best Practices
+spec:
+  rules:
+    - name: check-database-tags-defined
+      match:
+        all:
+          - ($analyzer.resource.type): terraform-plan
+          - (planned_values.root_module.child_modules[].resources[?type=='oci_database_database'][] | length(@) > `0`): true
+      assert:
+        any:
+          - message: Check that Environment, AppID and Provisioned_by and Environment tags are defined for databases.
+            check:
+              ~.(planned_values.root_module.child_modules[].resources[?type=='oci_database_database'][]):
+                values:
+                  ~.(database[]):
+                    freeform_tags:
+                      Environment:
+                        (length(@) > `0`): true
+                      AppID:
+                        (length(@) > `0`): true
+                      Provisioned_By:
+                        (length(@) > `0`): true
+                      Deploy_from:
+                        (length(@) > `0`): true

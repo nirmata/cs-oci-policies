@@ -1,0 +1,22 @@
+apiVersion: json.kyverno.io/v1alpha1
+kind: ValidatingPolicy
+metadata:
+  name: check-sensitive-data
+  annotations:
+    policies.kyverno.io/category: OCI Best Practices
+spec:
+  rules:
+    - name: check-sensitive-data
+      match:
+        all:
+          - ($analyzer.resource.type): terraform-plan
+          - (planned_values.root_module.child_modules[].resources[?type=='oci_database_database'][] | length(@) > `0`): true
+      assert:
+        all:
+          - message: Password must contain one digit from 1 to 9, one lowercase letter, one uppercase letter, one special character, no space, and it must be 8-16 characters long.
+            check:
+              ~.(planned_values.root_module.child_modules[].resources[?type=='oci_database_database'][]):
+                values:
+                  ~.(database[]):
+                    admin_password:
+                      (regex_match(@, '/^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*\W)(?!.* ).{8,16}$/')): true

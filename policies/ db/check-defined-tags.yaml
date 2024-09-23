@@ -1,0 +1,26 @@
+apiVersion: json.kyverno.io/v1alpha1
+kind: ValidatingPolicy
+metadata:
+  name: check-database-defined-tags
+  annotations:
+    policies.kyverno.io/category: OCI Best Practices
+spec:
+  rules:
+    - name: check-database-defined-tags
+      match:
+        all:
+          - ($analyzer.resource.type): terraform-plan
+          - (planned_values.root_module.child_modules[].resources[?type=='oci_database_database'][] | length(@) > `0`): true
+      assert:
+        any:
+          - message: Check that Operations.CostCenter tags are defined for databases.
+            check:
+              ~.(planned_values.root_module.child_modules[].resources[?type=='oci_database_database'][]):
+                values:
+                  ~.(database[]):
+                    defined_tags:
+                      (Environment): true
+                      #AppID:
+                        #(length(@) > `0`): true
+                      # (Operations.CostCenter): true
+                        # (length(@) > `0`): true
