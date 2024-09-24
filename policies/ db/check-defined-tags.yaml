@@ -13,7 +13,7 @@ spec:
           - (planned_values.root_module.child_modules[].resources[?type=='oci_database_database'][] | length(@) > `0`): true
       assert:
         any:
-          - message: Check that Operations.CostCenter tags are defined for databases.
+          - message: Check that Environment tags are defined for databases.
             check:
               ~.(planned_values.root_module.child_modules[].resources[?type=='oci_database_database'][]):
                 values:
