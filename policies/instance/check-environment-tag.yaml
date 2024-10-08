@@ -4,6 +4,7 @@ metadata:
   name: check-instance-environment-tag
   annotations:
     policies.kyverno.io/category: OCI Best Practices
+    policies.kyverno.io/severity: Critical
 spec:
   rules:
     - name: check-instance-environment-tag
