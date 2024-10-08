@@ -4,6 +4,7 @@ metadata:
   name: validate-region
   annotations:
     policies.kyverno.io/category: OCI Best Practices
+    policies.kyverno.io/severity: Critical
 spec:
   rules:
     - name: validate-region
