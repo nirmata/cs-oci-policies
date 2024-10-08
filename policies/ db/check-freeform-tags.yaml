@@ -4,6 +4,7 @@ metadata:
   name: check-database-tags-defined
   annotations:
     policies.kyverno.io/category: OCI Best Practices
+    policies.kyverno.io/severity: critical
 spec:
   rules:
     - name: check-database-tags-defined
