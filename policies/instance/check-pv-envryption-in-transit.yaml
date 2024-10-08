@@ -4,6 +4,7 @@ metadata:
   name: check-pv-encryption-in-transit
   annotations:
     policies.kyverno.io/category: OCI Best Practices
+    policies.kyverno.io/severity: Critical
 spec:
   rules:
     - name: check-pv-encryption-in-transit
