@@ -1,0 +1,23 @@
+apiVersion: json.kyverno.io/v1alpha1
+kind: ValidatingPolicy
+metadata:
+  name: check-database-region
+  annotations:
+    policies.kyverno.io/category: OCI Best Practices
+    policies.kyverno.io/severity: Critical
+spec:
+  rules:
+    - name: check-database-region
+      match:
+        all:
+          - ($analyzer.resource.type): terraform-plan
+          - (planned_values.root_module.child_modules[].resources[?type=='oci_database_database'][] | length(@) > `0`): true
+      assert:
+        all:
+          - message: "Check whether DB is spun on the right region : us-ashburn-1 (iad)"
+            check:
+              ~.(planned_values.root_module.child_modules[].resources[?type=='oci_database_database'][]):
+                values:
+                  db_home_id:
+#                    ~.(constant_value[]):
+                      (contains(@, '.iad.')): true
